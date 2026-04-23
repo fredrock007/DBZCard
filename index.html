@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DBZ Card Match</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top, #3a1400, #090909 65%);
+  color: white;
+  text-align: center;
+  min-height: 100vh;
+  padding: 15px;
+}
+
+h1 {
+  margin: 10px 0;
+  color: #ffcc00;
+  text-shadow: 0 0 12px orange;
+}
+
+.controls {
+  margin: 10px auto 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: #1b1b1b;
+  border: 1px solid #ff9900;
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+button {
+  background: linear-gradient(135deg, #ffcc00, #ff6600);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.stage-buttons {
+  margin: 15px 0;
+}
+
+.stage-buttons button {
+  margin: 4px;
+}
+
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(7, 110px);
+  gap: 12px;
+  justify-content: center;
+  margin: 20px auto;
+}
+
+.card {
+  width: 110px;
+  height: 155px;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: transform 0.45s;
+  transform-style: preserve-3d;
+}
+
+.card.flipped .inner {
+  transform: rotateY(180deg);
+}
+
+.front, .back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  overflow: hidden;
+  border: 2px solid #ffcc00;
+}
+
+.front {
+  background:
+    radial-gradient(circle, #ffcc00 5%, transparent 6%),
+    linear-gradient(135deg, #111, #5c1c00);
+  background-size: 25px 25px, cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+}
+
+.back {
+  transform: rotateY(180deg);
+  background: #000;
+}
+
+.back img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.matched {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+#message {
+  font-size: 22px;
+  color: #00ff99;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+@media (max-width: 850px) {
+  .game-board {
+    grid-template-columns: repeat(4, 85px);
+  }
+
+  .card {
+    width: 85px;
+    height: 125px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<h1>DBZ Card Match</h1>
+
+<div class="controls">
+  <div class="stat">Stage: <span id="stageDisplay">1</span>/5</div>
+  <div class="stat">Moves: <span id="moves">0</span></div>
+  <div class="stat">Matches: <span id="matches">0</span>/7</div>
+  <div class="stat">Time: <span id="timer">0</span>s</div>
+  <button onclick="restartStage()">Restart</button>
+</div>
+
+<div class="stage-buttons">
+  <button onclick="loadStage(1)">Stage 1</button>
+  <button onclick="loadStage(2)">Stage 2</button>
+  <button onclick="loadStage(3)">Stage 3</button>
+  <button onclick="loadStage(4)">Stage 4</button>
+  <button onclick="loadStage(5)">Stage 5</button>
+</div>
+
+<div id="gameBoard" class="game-board"></div>
+<div id="message"></div>
+
+<audio id="flipSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+<audio id="matchSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
+
+<script>
+const allCards = [
+  "GokuCard.png",
+  "VegetaCard.png",
+  "PiccoloCard.png",
+  "GohanCard.png",
+  "FriezaCard.png",
+  "BeerusCard.png",
+  "DendeCard.png",
+
+  "TrunksCard.png",
+  "CellCard.png",
+  "BrolyCard.png",
+  "Android17Card.png",
+  "JirenCard.png",
+  "MasterRoshiCard.png",
+  "KrillinCard.png",
+
+  "MajinBuuCard.png",
+  "TienCard.png",
+  "YamchaCard.png",
+  "BardockCard.png",
+  "Android18Card.png",
+  "ZamasuCard.png",
+  "GotenksCard.png",
+
+  "HitCard.png",
+  "KidBuuCard.png",
+  "GogetaCard.png",
+  "VegitoCard.png",
+  "Android16Card.png",
+  "NappaCard.png",
+  "CaptainCard.png",
+
+  "WhizCard.png",
+  "Bulmacard.png",
+  "RaditzCard.png",
+  "SuperbuuCard.png",
+  "CabbaCard.png",
+  "KaleCard.png",
+  "CauliflaCard.png"
+];
+
+let currentStage = 1;
+let selectedCards = [];
+let flippedCards = [];
+let moves = 0;
+let matches = 0;
+let lockBoard = false;
+let timer = 0;
+let timerInterval = null;
+
+const board = document.getElementById("gameBoard");
+const movesDisplay = document.getElementById("moves");
+const matchesDisplay = document.getElementById("matches");
+const stageDisplay = document.getElementById("stageDisplay");
+const timerDisplay = document.getElementById("timer");
+const message = document.getElementById("message");
+
+const flipSound = document.getElementById("flipSound");
+const matchSound = document.getElementById("matchSound");
+const winSound = document.getElementById("winSound");
+
+function loadStage(stageNumber) {
+  currentStage = stageNumber;
+  stageDisplay.textContent = currentStage;
+
+  const start = (stageNumber - 1) * 7;
+  const end = start + 7;
+
+  selectedCards = allCards.slice(start, end);
+  startGame();
+}
+
+function startGame() {
+  board.innerHTML = "";
+  message.textContent = "";
+  moves = 0;
+  matches = 0;
+  timer = 0;
+  flippedCards = [];
+  lockBoard = false;
+
+  movesDisplay.textContent = moves;
+  matchesDisplay.textContent = matches;
+  timerDisplay.textContent = timer;
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timer++;
+    timerDisplay.textContent = timer;
+  }, 1000);
+
+  let gameCards = [...selectedCards, ...selectedCards];
+  shuffle(gameCards);
+
+  gameCards.forEach(cardName => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.name = cardName;
+
+    card.innerHTML = `
+      <div class="inner">
+        <div class="front">?</div>
+        <div class="back">
+          <img src="images/${cardName}" alt="${cardName}">
+        </div>
+      </div>
+    `;
+
+    card.addEventListener("click", flipCard);
+    board.appendChild(card);
+  });
+}
+
+function flipCard() {
+  if (lockBoard) return;
+  if (this.classList.contains("flipped")) return;
+  if (this.classList.contains("matched")) return;
+
+  this.classList.add("flipped");
+  playSound(flipSound);
+
+  flippedCards.push(this);
+
+  if (flippedCards.length === 2) {
+    moves++;
+    movesDisplay.textContent = moves;
+    checkMatch();
+  }
+}
+
+function checkMatch() {
+  const [card1, card2] = flippedCards;
+
+  if (card1.dataset.name === card2.dataset.name) {
+    card1.classList.add("matched");
+    card2.classList.add("matched");
+
+    matches++;
+    matchesDisplay.textContent = matches;
+    playSound(matchSound);
+
+    flippedCards = [];
+
+    if (matches === 7) {
+      winStage();
+    }
+  } else {
+    lockBoard = true;
+
+    setTimeout(() => {
+      card1.classList.remove("flipped");
+      card2.classList.remove("flipped");
+      flippedCards = [];
+      lockBoard = false;
+    }, 900);
+  }
+}
+
+function winStage() {
+  clearInterval(timerInterval);
+  playSound(winSound);
+
+  if (currentStage < 5) {
+    message.textContent = `Stage ${currentStage} complete! Moving to Stage ${currentStage + 1}...`;
+
+    setTimeout(() => {
+      loadStage(currentStage + 1);
+    }, 1800);
+  } else {
+    message.textContent = `You completed all 5 stages in ${moves} moves on the final stage!`;
+  }
+}
+
+function restartStage() {
+  startGame();
+}
+
+function shuffle(array) {
+  array.sort(() => Math.random() - 0.5);
+}
+
+function playSound(sound) {
+  sound.currentTime = 0;
+  sound.play().catch(() => {});
+}
+
+loadStage(1);
+</script>
+
+</body>
+</html>
