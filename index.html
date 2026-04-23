@@ -14,110 +14,173 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  text-align: center;
-  background: radial-gradient(circle at top, #2a1200, #000 70%);
   color: white;
+  text-align: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at top, rgba(255, 187, 0, 0.28), transparent 30%),
+    radial-gradient(circle at bottom, rgba(255, 0, 0, 0.25), transparent 35%),
+    #050505;
 }
 
-/* HEADER */
+/* animated background energy */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(120deg, transparent, rgba(255, 200, 0, 0.08), transparent);
+  animation: energyMove 4s infinite linear;
+  pointer-events: none;
+}
+
+.app {
+  width: 100%;
+  max-width: 720px;
+  margin: auto;
+  padding: 10px;
+  position: relative;
+  z-index: 2;
+}
+
 h1 {
-  color: gold;
-  margin: 15px 0 5px;
-  text-shadow: 0 0 12px orange;
+  margin: 8px 0 2px;
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  color: #ffd900;
+  text-shadow:
+    0 0 8px orange,
+    0 0 18px red,
+    0 0 28px yellow;
+  animation: titlePulse 1.4s infinite alternate;
 }
 
 .subtitle {
-  font-size: 0.9rem;
-  color: #ffb347;
-  margin-bottom: 10px;
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #ffcf70;
 }
 
-/* CONTROLS */
-.controls {
+/* HUD */
+.hud {
+  background: rgba(0, 0, 0, 0.78);
+  border: 2px solid #ffb300;
+  box-shadow: 0 0 20px rgba(255, 166, 0, 0.45);
+  border-radius: 16px;
+  padding: 8px;
+  margin: 8px auto;
+}
+
+.stats {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  max-width: 400px;
-  margin: auto;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .stat {
-  background: #111;
-  padding: 8px;
+  background: linear-gradient(180deg, #1b1b1b, #050505);
+  border: 1px solid rgba(255, 196, 0, 0.75);
   border-radius: 10px;
-  border: 1px solid orange;
+  padding: 7px 4px;
+  font-size: 0.78rem;
+  font-weight: bold;
 }
 
-/* BUTTONS */
+.stage-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
 button {
-  padding: 10px;
-  border-radius: 10px;
   border: none;
+  border-radius: 11px;
+  padding: 10px 6px;
   font-weight: bold;
-  background: linear-gradient(135deg, #ffcc00, #ff6600);
+  color: #1b0900;
+  background: linear-gradient(135deg, #fff06a, #ff9900, #ff3c00);
+  box-shadow: 0 0 12px rgba(255, 123, 0, 0.55);
   cursor: pointer;
 }
 
-/* STAGE BUTTONS */
-.stage-buttons {
-  margin: 10px auto;
-  max-width: 400px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
+button:active {
+  transform: scale(0.95);
 }
 
-/* GAME BOARD */
+.restart {
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* board */
 .game-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  width: min(100%, 380px);
-  margin: 20px auto;
+  gap: 10px;
+  width: 100%;
+  margin: 14px auto 8px;
 }
 
-/* CARD */
 .card {
-  aspect-ratio: 5 / 7;
   width: 100%;
-  max-width: 120px;
-  margin: auto;
+  aspect-ratio: 5 / 7;
   perspective: 1000px;
+  cursor: pointer;
 }
 
 .inner {
+  position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.4s;
+  transition: transform 0.45s ease;
   transform-style: preserve-3d;
-  position: relative;
 }
 
 .card.flipped .inner {
   transform: rotateY(180deg);
 }
 
-/* FRONT/BACK */
 .front, .back {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
+  inset: 0;
+  border-radius: 15px;
+  overflow: hidden;
   backface-visibility: hidden;
-  border: 2px solid #ffcc00;
+  border: 2px solid #ffd000;
+  box-shadow:
+    0 0 10px rgba(255, 196, 0, 0.7),
+    inset 0 0 20px rgba(255, 115, 0, 0.35);
 }
 
 .front {
-  background: #222;
+  background:
+    radial-gradient(circle, rgba(255, 230, 0, 0.2), transparent 35%),
+    linear-gradient(145deg, #321000, #060606 55%, #641600);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 30px;
-  color: gold;
+  color: #ffd900;
+  font-size: clamp(2rem, 12vw, 4rem);
+  font-weight: bold;
+  text-shadow:
+    0 0 10px orange,
+    0 0 20px red;
+}
+
+.front::after {
+  content: "";
+  position: absolute;
+  width: 160%;
+  height: 35%;
+  background: rgba(255, 255, 180, 0.22);
+  transform: rotate(-35deg);
+  animation: shine 2.6s infinite;
 }
 
 .back {
   transform: rotateY(180deg);
+  background: black;
 }
 
 .back img {
@@ -126,51 +189,171 @@ button {
   object-fit: cover;
 }
 
-/* MATCH EFFECT */
-.matched {
-  opacity: 0.4;
+.card.flipped {
+  animation: aura 0.8s infinite alternate;
 }
 
-/* MESSAGE */
+.card.matched {
+  pointer-events: none;
+  animation: matchBlast 0.7s forwards;
+}
+
+/* messages */
 #message {
-  font-size: 18px;
-  color: lime;
-  margin-top: 10px;
+  min-height: 34px;
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #00ff99;
+  text-shadow: 0 0 12px #00ff99;
 }
 
-/* DESKTOP */
-@media (min-width: 700px) {
+/* stage intro overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeOut 1.4s forwards;
+  pointer-events: none;
+}
+
+.overlay-text {
+  color: #ffd900;
+  font-size: clamp(2rem, 12vw, 4rem);
+  font-weight: bold;
+  text-shadow:
+    0 0 12px orange,
+    0 0 28px red,
+    0 0 45px yellow;
+  animation: powerUp 1.1s ease;
+}
+
+/* win flash */
+.flash {
+  animation: screenFlash 0.45s ease;
+}
+
+@media (min-width: 650px) {
   .game-board {
-    grid-template-columns: repeat(5, 1fr);
-    width: 550px;
+    grid-template-columns: repeat(7, 1fr);
   }
+}
+
+@media (max-width: 380px) {
+  .game-board {
+    gap: 8px;
+  }
+
+  .stat {
+    font-size: 0.68rem;
+  }
+}
+
+/* animations */
+@keyframes energyMove {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes titlePulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.04); }
+}
+
+@keyframes shine {
+  0% { left: -160%; top: -30%; }
+  55% { left: 100%; top: 70%; }
+  100% { left: 100%; top: 70%; }
+}
+
+@keyframes aura {
+  from {
+    filter: drop-shadow(0 0 5px orange);
+  }
+  to {
+    filter:
+      drop-shadow(0 0 14px yellow)
+      drop-shadow(0 0 24px orange)
+      drop-shadow(0 0 34px red);
+  }
+}
+
+@keyframes matchBlast {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  45% {
+    transform: scale(1.12) rotate(2deg);
+    filter:
+      drop-shadow(0 0 20px yellow)
+      drop-shadow(0 0 35px orange);
+  }
+  100% {
+    transform: scale(0.93);
+    opacity: 0.35;
+  }
+}
+
+@keyframes powerUp {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes screenFlash {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(2.2); }
+  100% { filter: brightness(1); }
 }
 </style>
 </head>
 
 <body>
 
-<h1>DBZ Card Match</h1>
-<p class="subtitle">Match the warriors. Clear all 5 stages.</p>
+<div class="app" id="app">
+  <h1>DBZ Card Match</h1>
+  <p class="subtitle">Power up. Match the warriors. Clear all 5 stages.</p>
 
-<div class="controls">
-  <div class="stat">Stage: <span id="stage">1</span>/5</div>
-  <div class="stat">Moves: <span id="moves">0</span></div>
-  <div class="stat">Matches: <span id="matches">0</span>/7</div>
-  <div class="stat">Time: <span id="timer">0</span>s</div>
-  <button onclick="restart()">Restart</button>
+  <div class="hud">
+    <div class="stats">
+      <div class="stat">Stage<br><span id="stage">1</span>/5</div>
+      <div class="stat">Moves<br><span id="moves">0</span></div>
+      <div class="stat">Matches<br><span id="matches">0</span>/7</div>
+      <div class="stat">Time<br><span id="timer">0</span>s</div>
+    </div>
+
+    <div class="stage-buttons">
+      <button onclick="loadStage(1)">1</button>
+      <button onclick="loadStage(2)">2</button>
+      <button onclick="loadStage(3)">3</button>
+      <button onclick="loadStage(4)">4</button>
+      <button onclick="loadStage(5)">5</button>
+    </div>
+
+    <button class="restart" onclick="restart()">Restart Battle</button>
+  </div>
+
+  <div id="board" class="game-board"></div>
+  <div id="message"></div>
 </div>
-
-<div class="stage-buttons">
-  <button onclick="loadStage(1)">1</button>
-  <button onclick="loadStage(2)">2</button>
-  <button onclick="loadStage(3)">3</button>
-  <button onclick="loadStage(4)">4</button>
-  <button onclick="loadStage(5)">5</button>
-</div>
-
-<div id="board" class="game-board"></div>
-<div id="message"></div>
 
 <script>
 const allCards = [
@@ -191,14 +374,17 @@ let timer = 0;
 let interval;
 
 const board = document.getElementById("board");
+const app = document.getElementById("app");
 
 function loadStage(n) {
   stage = n;
   document.getElementById("stage").textContent = stage;
+  document.getElementById("message").textContent = "";
 
-  let start = (n - 1) * 7;
+  const start = (n - 1) * 7;
   selected = allCards.slice(start, start + 7);
 
+  showStageIntro("STAGE " + n);
   startGame();
 }
 
@@ -237,7 +423,7 @@ function startGame() {
       </div>
     `;
 
-    card.onclick = flip;
+    card.addEventListener("click", flip);
     board.appendChild(card);
   });
 }
@@ -247,6 +433,8 @@ function flip() {
 
   this.classList.add("flipped");
   flipped.push(this);
+
+  vibrate(25);
 
   if (flipped.length === 2) {
     moves++;
@@ -264,6 +452,11 @@ function checkMatch() {
 
     matches++;
     document.getElementById("matches").textContent = matches;
+    document.body.classList.add("flash");
+    setTimeout(() => document.body.classList.remove("flash"), 450);
+
+    vibrate([40, 25, 40]);
+
     flipped = [];
 
     if (matches === 7) win();
@@ -283,15 +476,34 @@ function win() {
   clearInterval(interval);
 
   if (stage < 5) {
-    document.getElementById("message").textContent = "Stage Complete!";
-    setTimeout(() => loadStage(stage + 1), 1500);
+    document.getElementById("message").textContent = "Stage cleared! Next battle loading...";
+    vibrate([80, 40, 80]);
+    setTimeout(() => loadStage(stage + 1), 1600);
   } else {
-    document.getElementById("message").textContent = "You completed all stages!";
+    document.getElementById("message").textContent = "VICTORY! All warriors matched!";
+    showStageIntro("VICTORY!");
+    vibrate([100, 50, 100, 50, 150]);
   }
 }
 
 function restart() {
+  showStageIntro("RESTART");
   startGame();
+}
+
+function showStageIntro(text) {
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML = `<div class="overlay-text">${text}</div>`;
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    overlay.remove();
+  }, 1500);
+}
+
+function vibrate(pattern) {
+  if (navigator.vibrate) navigator.vibrate(pattern);
 }
 
 function shuffle(arr) {
