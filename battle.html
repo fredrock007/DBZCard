@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBZ Card Battle</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(255, 196, 0, 0.3), transparent 30%),
+    radial-gradient(circle at bottom, rgba(255, 0, 0, 0.25), transparent 35%),
+    #050505;
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  color: gold;
+  text-shadow: 0 0 14px orange, 0 0 28px red;
+  margin: 10px 0 5px;
+}
+
+.subtitle {
+  color: #ffcf70;
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.scoreboard {
+  width: 94vw;
+  margin: 8px auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.score {
+  border: 2px solid orange;
+  border-radius: 12px;
+  padding: 8px;
+  background: #080808;
+  font-weight: bold;
+}
+
+.arena {
+  width: 94vw;
+  margin: 10px auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.card-box {
+  border: 2px solid gold;
+  border-radius: 18px;
+  background: #080808;
+  padding: 8px;
+  box-shadow: 0 0 18px orange;
+}
+
+.card-box h2 {
+  font-size: 1rem;
+  margin: 4px 0 8px;
+}
+
+.card-img {
+  width: 100%;
+  border-radius: 14px;
+  border: 2px solid gold;
+  background: black;
+}
+
+.card-name {
+  margin: 8px 0;
+  color: gold;
+  font-weight: bold;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+
+.stat {
+  background: #111;
+  border: 1px solid #ff9900;
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 0.85rem;
+}
+
+.stat button {
+  width: 100%;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: bold;
+  background: linear-gradient(135deg, gold, orange, red);
+  color: #1b0900;
+  cursor: pointer;
+}
+
+.result {
+  min-height: 50px;
+  margin: 10px auto;
+  width: 94vw;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #00ff99;
+  text-shadow: 0 0 12px #00ff99;
+}
+
+.controls {
+  width: 94vw;
+  margin: 10px auto;
+  display: grid;
+  gap: 8px;
+}
+
+.hidden-card {
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: 14px;
+  border: 2px solid gold;
+  background:
+    radial-gradient(circle, rgba(255, 230, 0, 0.25), transparent 35%),
+    linear-gradient(145deg, #321000, #060606 55%, #641600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  color: gold;
+  text-shadow: 0 0 15px orange;
+}
+
+.win {
+  animation: winPulse 0.7s infinite alternate;
+}
+
+@keyframes winPulse {
+  from { box-shadow: 0 0 15px orange; }
+  to { box-shadow: 0 0 35px yellow, 0 0 55px red; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>DBZ Card Battle</h1>
+<p class="subtitle">Choose a stat. Highest number wins the round.</p>
+
+<div class="scoreboard">
+  <div class="score">You<br><span id="playerScore">0</span></div>
+  <div class="score">Round<br><span id="round">1</span></div>
+  <div class="score">CPU<br><span id="cpuScore">0</span></div>
+</div>
+
+<div class="arena">
+  <div class="card-box" id="playerBox">
+    <h2>Your Fighter</h2>
+    <img id="playerImg" class="card-img">
+    <div id="playerName" class="card-name"></div>
+    <div id="playerStats" class="stats"></div>
+  </div>
+
+  <div class="card-box" id="cpuBox">
+    <h2>CPU Fighter</h2>
+    <div id="cpuHidden" class="hidden-card">?</div>
+    <img id="cpuImg" class="card-img" style="display:none;">
+    <div id="cpuName" class="card-name">Hidden</div>
+    <div id="cpuStats" class="stats"></div>
+  </div>
+</div>
+
+<div id="result" class="result">Choose your strongest stat.</div>
+
+<div class="controls">
+  <button onclick="nextRound()">Next Round</button>
+  <button onclick="restartGame()">Restart Battle</button>
+  <button onclick="location.href='index.html'">Back to Matching Game</button>
+</div>
+
+<script>
+const cards = [
+{name:"Android 16", img:"Android16Card.png", power:82, speed:72, ki:70, intelligence:78, technique:76},
+{name:"Android 17", img:"Android17Card.png", power:86, speed:88, ki:84, intelligence:82, technique:85},
+{name:"Android 18", img:"Android18Card.png", power:84, speed:86, ki:82, intelligence:80, technique:83},
+{name:"Bardock", img:"BardockCard.png", power:78, speed:76, ki:77, intelligence:74, technique:79},
+{name:"Beerus", img:"BeerusCard.png", power:99, speed:96, ki:99, intelligence:90, technique:98},
+{name:"Broly", img:"BrolyCard.png", power:100, speed:88, ki:98, intelligence:65, technique:84},
+{name:"Bulma", img:"Bulmacard.png", power:30, speed:45, ki:10, intelligence:100, technique:55},
+{name:"Cabba", img:"CabbaCard.png", power:75, speed:78, ki:76, intelligence:72, technique:77},
+{name:"Captain Ginyu", img:"CaptainCard.png", power:73, speed:70, ki:72, intelligence:78, technique:82},
+{name:"Caulifla", img:"CauliflaCard.png", power:80, speed:83, ki:81, intelligence:72, technique:79},
+{name:"Cell", img:"CellCard.png", power:92, speed:90, ki:91, intelligence:94, technique:93},
+{name:"Dende", img:"DendeCard.png", power:20, speed:40, ki:55, intelligence:78, technique:70},
+{name:"Frieza", img:"FriezaCard.png", power:94, speed:92, ki:95, intelligence:90, technique:91},
+{name:"Gogeta", img:"GogetaCard.png", power:100, speed:100, ki:100, intelligence:88, technique:99},
+{name:"Gohan", img:"GohanCard.png", power:93, speed:88, ki:92, intelligence:91, technique:87},
+{name:"Goku", img:"GokuCard.png", power:98, speed:96, ki:98, intelligence:84, technique:97},
+{name:"Gotenks", img:"GotenksCard.png", power:88, speed:86, ki:87, intelligence:62, technique:84},
+{name:"Hit", img:"HitCard.png", power:91, speed:95, ki:88, intelligence:93, technique:100},
+{name:"Jiren", img:"JirenCard.png", power:100, speed:94, ki:97, intelligence:86, technique:94},
+{name:"Kale", img:"KaleCard.png", power:90, speed:79, ki:89, intelligence:66, technique:75},
+{name:"Kid Buu", img:"KidbuuCard.png", power:94, speed:91, ki:93, intelligence:50, technique:86},
+{name:"Krillin", img:"KrillinCard.png", power:68, speed:76, ki:72, intelligence:80, technique:84},
+{name:"Majin Buu", img:"MajinbuuCard.png", power:90, speed:75, ki:88, intelligence:58, technique:82},
+{name:"Nappa", img:"NappaCard.png", power:70, speed:55, ki:65, intelligence:50, technique:60},
+{name:"Piccolo", img:"PiccoloCard.png", power:84, speed:80, ki:83, intelligence:92, technique:90},
+{name:"Raditz", img:"RaditzCard.png", power:62, speed:60, ki:61, intelligence:58, technique:59},
+{name:"Master Roshi", img:"RoshiCard.png", power:72, speed:68, ki:75, intelligence:90, technique:92},
+{name:"Super Buu", img:"SuperbuuCard.png", power:95, speed:88, ki:94, intelligence:74, technique:90},
+{name:"Tien", img:"TienCard.png", power:70, speed:74, ki:76, intelligence:82, technique:88},
+{name:"Trunks", img:"TrunksCard.png", power:87, speed:86, ki:85, intelligence:80, technique:84},
+{name:"Vegeta", img:"VegetaCard.png", power:97, speed:94, ki:96, intelligence:88, technique:96},
+{name:"Vegito", img:"VegitoCard.png", power:100, speed:99, ki:100, intelligence:90, technique:100},
+{name:"Whis", img:"WhizCard.png", power:100, speed:100, ki:100, intelligence:99, technique:100},
+{name:"Yamcha", img:"YamchaCard.png", power:58, speed:65, ki:60, intelligence:68, technique:70},
+{name:"Zamasu", img:"ZamasuCard.png", power:89, speed:84, ki:91, intelligence:94, technique:88}
+];
+
+let deck = [];
+let playerCard = null;
+let cpuCard = null;
+let playerScore = 0;
+let cpuScore = 0;
+let round = 1;
+let roundPlayed = false;
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+function restartGame() {
+  deck = shuffle([...cards]);
+  playerScore = 0;
+  cpuScore = 0;
+  round = 1;
+  roundPlayed = false;
+
+  document.getElementById("playerScore").textContent = playerScore;
+  document.getElementById("cpuScore").textContent = cpuScore;
+  document.getElementById("round").textContent = round;
+
+  drawCards();
+}
+
+function drawCards() {
+  if (deck.length < 2) {
+    deck = shuffle([...cards]);
+  }
+
+  playerCard = deck.pop();
+  cpuCard = deck.pop();
+  roundPlayed = false;
+
+  document.getElementById("playerBox").classList.remove("win");
+  document.getElementById("cpuBox").classList.remove("win");
+
+  document.getElementById("playerImg").src = playerCard.img;
+  document.getElementById("playerName").textContent = playerCard.name;
+
+  document.getElementById("cpuHidden").style.display = "flex";
+  document.getElementById("cpuImg").style.display = "none";
+  document.getElementById("cpuName").textContent = "Hidden";
+  document.getElementById("cpuStats").innerHTML = "";
+
+  const stats = ["power", "speed", "ki", "intelligence", "technique"];
+
+  document.getElementById("playerStats").innerHTML = stats.map(stat => `
+    <div class="stat">
+      <button onclick="battle('${stat}')">
+        ${stat.toUpperCase()}: ${playerCard[stat]}
+      </button>
+    </div>
+  `).join("");
+
+  document.getElementById("result").textContent = "Choose your strongest stat.";
+}
+
+function battle(stat) {
+  if (roundPlayed) return;
+
+  roundPlayed = true;
+
+  document.getElementById("cpuHidden").style.display = "none";
+  document.getElementById("cpuImg").style.display = "block";
+  document.getElementById("cpuImg").src = cpuCard.img;
+  document.getElementById("cpuName").textContent = cpuCard.name;
+
+  const stats = ["power", "speed", "ki", "intelligence", "technique"];
+
+  document.getElementById("cpuStats").innerHTML = stats.map(s => `
+    <div class="stat">${s.toUpperCase()}: ${cpuCard[s]}</div>
+  `).join("");
+
+  const playerValue = playerCard[stat];
+  const cpuValue = cpuCard[stat];
+
+  if (playerValue > cpuValue) {
+    playerScore++;
+    document.getElementById("playerBox").classList.add("win");
+    document.getElementById("result").textContent =
+      `You win! ${playerCard.name}'s ${stat.toUpperCase()} (${playerValue}) beats ${cpuCard.name}'s (${cpuValue}).`;
+  } else if (cpuValue > playerValue) {
+    cpuScore++;
+    document.getElementById("cpuBox").classList.add("win");
+    document.getElementById("result").textContent =
+      `CPU wins! ${cpuCard.name}'s ${stat.toUpperCase()} (${cpuValue}) beats ${playerCard.name}'s (${playerValue}).`;
+  } else {
+    document.getElementById("result").textContent =
+      `Draw! Both fighters have ${playerValue} ${stat.toUpperCase()}.`;
+  }
+
+  document.getElementById("playerScore").textContent = playerScore;
+  document.getElementById("cpuScore").textContent = cpuScore;
+}
+
+function nextRound() {
+  if (!roundPlayed) {
+    document.getElementById("result").textContent = "Choose a stat first.";
+    return;
+  }
+
+  round++;
+
+  if (round > 10) {
+    endGame();
+    return;
+  }
+
+  document.getElementById("round").textContent = round;
+  drawCards();
+}
+
+function endGame() {
+  if (playerScore > cpuScore) {
+    document.getElementById("result").textContent = "VICTORY! You won the battle tournament.";
+  } else if (cpuScore > playerScore) {
+    document.getElementById("result").textContent = "DEFEAT! CPU won the battle tournament.";
+  } else {
+    document.getElementById("result").textContent = "DRAW! The tournament ended evenly.";
+  }
+}
+
+restartGame();
+</script>
+
+</body>
+</html>
