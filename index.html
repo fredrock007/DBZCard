@@ -1,84 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DBZ Card Match</title>
 
 <style>
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #3a1400, #090909 65%);
-  color: white;
   text-align: center;
+  background:
+    radial-gradient(circle at top, rgba(255, 174, 0, 0.35), transparent 28%),
+    radial-gradient(circle at bottom, rgba(255, 0, 0, 0.22), transparent 30%),
+    #070707;
+  color: white;
   min-height: 100vh;
-  padding: 15px;
+  overflow-x: hidden;
+  padding: 12px;
 }
 
 h1 {
-  margin: 10px 0;
-  color: #ffcc00;
-  text-shadow: 0 0 12px orange;
+  margin: 12px 0 6px;
+  color: #ffd700;
+  font-size: clamp(1.7rem, 7vw, 3rem);
+  text-shadow:
+    0 0 8px orange,
+    0 0 18px red,
+    0 0 30px yellow;
+  animation: powerPulse 1.8s infinite alternate;
+}
+
+.subtitle {
+  margin: 0 0 12px;
+  color: #ffb347;
+  font-size: 0.95rem;
 }
 
 .controls {
-  margin: 10px auto 20px;
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(5, 5, 5, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 196, 0, 0.35);
+  border-radius: 16px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-width: 520px;
+  margin: 10px auto;
 }
 
 .stat {
-  background: #1b1b1b;
-  border: 1px solid #ff9900;
-  border-radius: 10px;
-  padding: 8px 14px;
+  background: linear-gradient(145deg, #181818, #050505);
+  border: 1px solid rgba(255, 183, 0, 0.45);
+  padding: 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(255, 153, 0, 0.15);
 }
 
 button {
-  background: linear-gradient(135deg, #ffcc00, #ff6600);
   border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
+  border-radius: 14px;
+  padding: 11px 14px;
   font-weight: bold;
   cursor: pointer;
+  color: #170900;
+  background: linear-gradient(135deg, #fff06a, #ff9800, #ff4500);
+  box-shadow: 0 0 14px rgba(255, 140, 0, 0.5);
+  touch-action: manipulation;
 }
 
 .stage-buttons {
-  margin: 15px 0;
+  max-width: 520px;
+  margin: 10px auto;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
 }
 
 .stage-buttons button {
-  margin: 4px;
+  padding: 9px 4px;
+  font-size: 0.8rem;
 }
 
 .game-board {
   display: grid;
-  grid-template-columns: repeat(7, 110px);
-  gap: 12px;
-  justify-content: center;
-  margin: 20px auto;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  gap: 10px;
+  width: min(100%, 520px);
+  margin: 15px auto 25px;
 }
 
 .card {
-  width: 110px;
-  height: 155px;
+  aspect-ratio: 5 / 7;
   perspective: 1000px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .inner {
   width: 100%;
   height: 100%;
-  position: relative;
-  transition: transform 0.45s;
+  transition: transform 0.45s ease;
   transform-style: preserve-3d;
+  position: relative;
 }
 
 .card.flipped .inner {
@@ -87,23 +121,34 @@ button {
 
 .front, .back {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
+  inset: 0;
+  border-radius: 14px;
   backface-visibility: hidden;
   overflow: hidden;
-  border: 2px solid #ffcc00;
+  border: 2px solid #ffd700;
 }
 
 .front {
   background:
-    radial-gradient(circle, #ffcc00 5%, transparent 6%),
-    linear-gradient(135deg, #111, #5c1c00);
-  background-size: 25px 25px, cover;
+    radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 35%),
+    linear-gradient(145deg, #331000, #070707 55%, #5c1b00);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 42px;
+  font-size: clamp(1.8rem, 9vw, 3rem);
+  color: #ffd700;
+  text-shadow: 0 0 12px orange;
+  box-shadow: inset 0 0 22px rgba(255, 153, 0, 0.45);
+}
+
+.front::before {
+  content: "";
+  position: absolute;
+  width: 150%;
+  height: 35%;
+  background: rgba(255, 230, 120, 0.25);
+  transform: rotate(-35deg);
+  animation: shine 2.8s infinite;
 }
 
 .back {
@@ -117,26 +162,82 @@ button {
   object-fit: cover;
 }
 
-.matched {
-  opacity: 0.45;
+.card.flipped {
+  animation: aura 1.2s infinite alternate;
+}
+
+.card.matched {
   pointer-events: none;
+  animation: matchedBlast 0.65s ease forwards;
 }
 
 #message {
-  font-size: 22px;
-  color: #00ff99;
+  margin: 14px auto;
+  font-size: 1.2rem;
+  color: #00ff9d;
   font-weight: bold;
-  margin-top: 15px;
+  text-shadow: 0 0 12px #00ff9d;
+  min-height: 28px;
 }
 
-@media (max-width: 850px) {
+@keyframes powerPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.035); }
+}
+
+@keyframes shine {
+  0% { left: -130%; top: -20%; }
+  55% { left: 100%; top: 70%; }
+  100% { left: 100%; top: 70%; }
+}
+
+@keyframes aura {
+  from {
+    filter: drop-shadow(0 0 5px orange);
+  }
+  to {
+    filter: drop-shadow(0 0 16px yellow) drop-shadow(0 0 24px red);
+  }
+}
+
+@keyframes matchedBlast {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px yellow);
+  }
+  45% {
+    transform: scale(1.12) rotate(1deg);
+    filter: drop-shadow(0 0 25px orange) drop-shadow(0 0 35px yellow);
+  }
+  100% {
+    transform: scale(0.96);
+    opacity: 0.45;
+  }
+}
+
+@media (min-width: 700px) {
   .game-board {
-    grid-template-columns: repeat(4, 85px);
+    grid-template-columns: repeat(7, 100px);
+    width: auto;
   }
 
   .card {
-    width: 85px;
-    height: 125px;
+    width: 100px;
+    height: 140px;
+  }
+
+  .controls {
+    grid-template-columns: repeat(5, auto);
+  }
+}
+
+@media (max-width: 380px) {
+  .game-board {
+    grid-template-columns: repeat(3, minmax(72px, 1fr));
+  }
+
+  .stage-buttons {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 </style>
@@ -145,216 +246,156 @@ button {
 <body>
 
 <h1>DBZ Card Match</h1>
+<p class="subtitle">Power up. Match the warriors. Clear all 5 stages.</p>
 
 <div class="controls">
-  <div class="stat">Stage: <span id="stageDisplay">1</span>/5</div>
+  <div class="stat">Stage: <span id="stage">1</span>/5</div>
   <div class="stat">Moves: <span id="moves">0</span></div>
   <div class="stat">Matches: <span id="matches">0</span>/7</div>
   <div class="stat">Time: <span id="timer">0</span>s</div>
-  <button onclick="restartStage()">Restart</button>
+  <button onclick="restart()">Restart</button>
 </div>
 
 <div class="stage-buttons">
-  <button onclick="loadStage(1)">Stage 1</button>
-  <button onclick="loadStage(2)">Stage 2</button>
-  <button onclick="loadStage(3)">Stage 3</button>
-  <button onclick="loadStage(4)">Stage 4</button>
-  <button onclick="loadStage(5)">Stage 5</button>
+  <button onclick="loadStage(1)">1</button>
+  <button onclick="loadStage(2)">2</button>
+  <button onclick="loadStage(3)">3</button>
+  <button onclick="loadStage(4)">4</button>
+  <button onclick="loadStage(5)">5</button>
 </div>
 
-<div id="gameBoard" class="game-board"></div>
+<div id="board" class="game-board"></div>
 <div id="message"></div>
-
-<audio id="flipSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
-<audio id="matchSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
 
 <script>
 const allCards = [
-  "GokuCard.png",
-  "VegetaCard.png",
-  "PiccoloCard.png",
-  "GohanCard.png",
-  "FriezaCard.png",
-  "BeerusCard.png",
-  "DendeCard.png",
-
-  "TrunksCard.png",
-  "CellCard.png",
-  "BrolyCard.png",
-  "Android17Card.png",
-  "JirenCard.png",
-  "MasterRoshiCard.png",
-  "KrillinCard.png",
-
-  "MajinBuuCard.png",
-  "TienCard.png",
-  "YamchaCard.png",
-  "BardockCard.png",
-  "Android18Card.png",
-  "ZamasuCard.png",
-  "GotenksCard.png",
-
-  "HitCard.png",
-  "KidBuuCard.png",
-  "GogetaCard.png",
-  "VegitoCard.png",
-  "Android16Card.png",
-  "NappaCard.png",
-  "CaptainCard.png",
-
-  "WhizCard.png",
-  "Bulmacard.png",
-  "RaditzCard.png",
-  "SuperbuuCard.png",
-  "CabbaCard.png",
-  "KaleCard.png",
-  "CauliflaCard.png"
+"Android16Card.png","Android17Card.png","Android18Card.png","BardockCard.png","BeerusCard.png","BrolyCard.png","Bulmacard.png",
+"CabbaCard.png","CaptainCard.png","CauliflaCard.png","CellCard.png","DendeCard.png","FriezaCard.png","GogetaCard.png",
+"GohanCard.png","GokuCard.png","GotenksCard.png","HitCard.png","JirenCard.png","KaleCard.png","KidbuuCard.png",
+"KrillinCard.png","MajinbuuCard.png","NappaCard.png","PiccoloCard.png","RaditzCard.png","RoshiCard.png","SuperbuuCard.png",
+"TienCard.png","TrunksCard.png","VegetaCard.png","VegitoCard.png","WhizCard.png","YamchaCard.png","ZamasuCard.png"
 ];
 
-let currentStage = 1;
-let selectedCards = [];
-let flippedCards = [];
+let stage = 1;
+let selected = [];
+let flipped = [];
 let moves = 0;
 let matches = 0;
-let lockBoard = false;
+let lock = false;
 let timer = 0;
-let timerInterval = null;
+let interval;
 
-const board = document.getElementById("gameBoard");
-const movesDisplay = document.getElementById("moves");
-const matchesDisplay = document.getElementById("matches");
-const stageDisplay = document.getElementById("stageDisplay");
-const timerDisplay = document.getElementById("timer");
-const message = document.getElementById("message");
+const board = document.getElementById("board");
 
-const flipSound = document.getElementById("flipSound");
-const matchSound = document.getElementById("matchSound");
-const winSound = document.getElementById("winSound");
+function loadStage(n) {
+  stage = n;
+  document.getElementById("stage").textContent = stage;
+  document.getElementById("message").textContent = "";
 
-function loadStage(stageNumber) {
-  currentStage = stageNumber;
-  stageDisplay.textContent = currentStage;
+  let start = (n - 1) * 7;
+  selected = allCards.slice(start, start + 7);
 
-  const start = (stageNumber - 1) * 7;
-  const end = start + 7;
-
-  selectedCards = allCards.slice(start, end);
   startGame();
 }
 
 function startGame() {
   board.innerHTML = "";
-  message.textContent = "";
+  flipped = [];
   moves = 0;
   matches = 0;
   timer = 0;
-  flippedCards = [];
-  lockBoard = false;
+  lock = false;
 
-  movesDisplay.textContent = moves;
-  matchesDisplay.textContent = matches;
-  timerDisplay.textContent = timer;
+  document.getElementById("moves").textContent = 0;
+  document.getElementById("matches").textContent = 0;
+  document.getElementById("timer").textContent = 0;
 
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
+  clearInterval(interval);
+  interval = setInterval(() => {
     timer++;
-    timerDisplay.textContent = timer;
+    document.getElementById("timer").textContent = timer;
   }, 1000);
 
-  let gameCards = [...selectedCards, ...selectedCards];
+  let gameCards = [...selected, ...selected];
   shuffle(gameCards);
 
-  gameCards.forEach(cardName => {
-    const card = document.createElement("div");
+  gameCards.forEach(name => {
+    let card = document.createElement("div");
     card.className = "card";
-    card.dataset.name = cardName;
+    card.dataset.name = name;
 
     card.innerHTML = `
       <div class="inner">
         <div class="front">?</div>
         <div class="back">
-          <img src="images/${cardName}" alt="${cardName}">
+          <img src="${name}" alt="${name}">
         </div>
       </div>
     `;
 
-    card.addEventListener("click", flipCard);
+    card.addEventListener("click", flip);
     board.appendChild(card);
   });
 }
 
-function flipCard() {
-  if (lockBoard) return;
-  if (this.classList.contains("flipped")) return;
-  if (this.classList.contains("matched")) return;
+function flip() {
+  if (lock || this.classList.contains("flipped") || this.classList.contains("matched")) return;
 
   this.classList.add("flipped");
-  playSound(flipSound);
+  flipped.push(this);
 
-  flippedCards.push(this);
+  if (navigator.vibrate) navigator.vibrate(25);
 
-  if (flippedCards.length === 2) {
+  if (flipped.length === 2) {
     moves++;
-    movesDisplay.textContent = moves;
+    document.getElementById("moves").textContent = moves;
     checkMatch();
   }
 }
 
 function checkMatch() {
-  const [card1, card2] = flippedCards;
+  let [a, b] = flipped;
 
-  if (card1.dataset.name === card2.dataset.name) {
-    card1.classList.add("matched");
-    card2.classList.add("matched");
+  if (a.dataset.name === b.dataset.name) {
+    a.classList.add("matched");
+    b.classList.add("matched");
 
     matches++;
-    matchesDisplay.textContent = matches;
-    playSound(matchSound);
+    document.getElementById("matches").textContent = matches;
+    flipped = [];
 
-    flippedCards = [];
+    if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
 
-    if (matches === 7) {
-      winStage();
-    }
+    if (matches === 7) win();
   } else {
-    lockBoard = true;
+    lock = true;
 
     setTimeout(() => {
-      card1.classList.remove("flipped");
-      card2.classList.remove("flipped");
-      flippedCards = [];
-      lockBoard = false;
-    }, 900);
+      a.classList.remove("flipped");
+      b.classList.remove("flipped");
+      flipped = [];
+      lock = false;
+    }, 750);
   }
 }
 
-function winStage() {
-  clearInterval(timerInterval);
-  playSound(winSound);
+function win() {
+  clearInterval(interval);
 
-  if (currentStage < 5) {
-    message.textContent = `Stage ${currentStage} complete! Moving to Stage ${currentStage + 1}...`;
-
-    setTimeout(() => {
-      loadStage(currentStage + 1);
-    }, 1800);
+  if (stage < 5) {
+    document.getElementById("message").textContent = "Stage Complete! Next battle loading...";
+    setTimeout(() => loadStage(stage + 1), 1600);
   } else {
-    message.textContent = `You completed all 5 stages in ${moves} moves on the final stage!`;
+    document.getElementById("message").textContent = "Victory! You completed all 5 stages!";
   }
 }
 
-function restartStage() {
+function restart() {
   startGame();
 }
 
-function shuffle(array) {
-  array.sort(() => Math.random() - 0.5);
-}
-
-function playSound(sound) {
-  sound.currentTime = 0;
-  sound.play().catch(() => {});
+function shuffle(arr) {
+  arr.sort(() => Math.random() - 0.5);
 }
 
 loadStage(1);
